@@ -186,6 +186,133 @@ Add the swagger generator in service method
  ```
 # Consuming the API
 
+### Step 1
+Add the entry in config file for the base url of the API
+
+```json
+"API": {
+    "BaseUrl": "https://localhost:44388"
+  },
+```
+
+and then add the following in `EmployeeController` 
+
+```csharp
+private string BaseUrl;
+
+//add this inside constructor
+BaseUrl = config["API:BaseUrl"];
+```
+
+### Step 2
+Set up the default JSON Serializer
+Import the `System.Text.Json` namespace
+
+```csharp
+using System.Text.Json;
+```
+
+Create an instance of `JsonSerializerOptions` class and set the options
+
+```csharp
+JsonSerializerOptions jsonOptions;
+
+//inside constructor
+jsonOptions = new JsonSerializerOptions
+{
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+};
+```
+
+### Step 3
+We will use the `HttpClient` class available in `System.Net.Http` namspace to communicate with the API
+
+```csharp
+using System.Net.Http;
+```
+
+### Step 4
+Modify the `Employee` method with the following snippet to retrieve all the employees using API
+```csharp
+using (var httpClient = new HttpClient())
+{
+    using (var response = await httpClient.GetAsync($"{BaseUrl}/api/Employee"))
+    {
+        string apiResponse = await response.Content.ReadAsStringAsync();
+        employeeList = JsonSerializer.Deserialize<List<Employee>>(apiResponse, jsonOptions);
+    }
+}
+```
+
+### Step 5
+Modify `SaveEmployee` method with below for saving 
+```csharp
+using (var httpClient = new HttpClient())
+{
+    StringContent content = new StringContent(JsonSerializer.Serialize(employee, jsonOptions), Encoding.UTF8, "application/json");
+    using (var response = await httpClient.PostAsync($"{BaseUrl}/api/Employee",content))
+    {
+        
+        string apiResponse = await response.Content.ReadAsStringAsync();
+        
+    }
+}
+```
+
+### Step 6
+For editing, first you need to retrieve the employee details using API, so modify the method with the one given below
+```csharp
+using (var httpClient = new HttpClient())
+{
+    using (var response = await httpClient.GetAsync($"{BaseUrl}/api/Employee/{Id}"))
+    {
+        string apiResponse = await response.Content.ReadAsStringAsync();
+        employee = JsonSerializer.Deserialize<Employee>(apiResponse, jsonOptions);
+    }
+}
+```
+And for updating the data
+
+```csharp
+using (var httpClient = new HttpClient())
+{
+    var content = new MultipartFormDataContent();
+    content.Add(new StringContent(employee.Id.ToString()), "id");
+    content.Add(new StringContent(employee.FirstName), "firstName");
+    content.Add(new StringContent(employee.LastName), "lastName");
+    content.Add(new StringContent(employee.EmailAddress), "emailAddress");
+
+    using (var response = await httpClient.PutAsync($"{BaseUrl}/api/Employee", content))
+    {
+        string apiResponse = await response.Content.ReadAsStringAsync();
+
+        return Json(new { isSucess = true });
+    }
+}
+```
+### Step 7
+
+And finally for delete modify the `DeleteEmployee` method
+```csharp
+using (var httpClient = new HttpClient())
+{
+    using (var response = await httpClient.DeleteAsync($"{BaseUrl}/api/Employee/{Id}"))
+    {
+        string apiResponse = await response.Content.ReadAsStringAsync();
+        return Json(new { isSucess = true });
+    }
+}
+```
+
+# Model Valiadation
+To perform a valiadtion we can use
+
+```csharp
+if (!ModelState.IsValid)
+{
+    return Page();
+}
+```
 
 # Enable Cors
 
