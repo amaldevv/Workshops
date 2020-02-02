@@ -69,7 +69,7 @@ Create a method for retrieving the employees, decorate it with `HttpGet` attribu
 [HttpGet]
 public async Task<ActionResult<List<Employee>>> GetEmployees()
 {
-    var items = await Task.Run(() =>  empRepo.EmployeeList() );
+    var items = await empRepo.EmployeeList() ;
     if (items == null)
     {
         return NotFound();
@@ -86,7 +86,7 @@ public async Task<ActionResult<Employee>> GetEmployee(int id)
 {
 
 
-    var employee = await Task.Run(() => empRepo.GetEmployeeDetails(id));
+    var employee = empRepo.GetEmployeeDetails(id);
     if (employee == null)
     {
         return NotFound();
@@ -100,7 +100,7 @@ Let's create a **POST** method for creating a new employee. Decorate the method 
 [HttpPost]
 public async Task<ActionResult<Employee>> CreateEmployee(Employee employee)
 {
-    await Task.Run(() => empRepo.AddEmployee(employee));
+    await empRepo.AddEmployee(employee);
     
     return CreatedAtAction(nameof(CreateEmployee), new { id = employee.Id }, employee);
 }
@@ -109,13 +109,13 @@ public async Task<ActionResult<Employee>> CreateEmployee(Employee employee)
 For updating an employee we will create the method which uses `HttpPut` verb and accepts id as the route parameter
 ```csharp
 [HttpPut("{id}")]
-public async Task<IActionResult> UpdateEmployee(Employee employee)
+public async Task<IActionResult> UpdateEmployee(int id,Employee employee)
 {
     if (id != employee.Id)
     {
         return BadRequest();
     }
-    await Task.Run(() => empRepo.SaveEmployee(employee));
+    await  empRepo.SaveEmployee(employee);
     return NoContent();
 }
   ```
@@ -126,7 +126,7 @@ Similarly for the delete operation, we will make use of the `HttpDelete` verb an
 [HttpDelete("{id}")]
 public async Task<ActionResult<Employee>> DeleteEmployee(int id)
 {
-    var employee = await Task.Run(() => empRepo.GetEmployeeDetails(id));
+    var employee = empRepo.GetEmployeeDetails(id);
     if (employee == null)
     {
         return NotFound();
