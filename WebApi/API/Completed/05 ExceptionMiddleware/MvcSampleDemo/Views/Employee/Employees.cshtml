@@ -1,0 +1,59 @@
+﻿@model List<Employee>
+@{
+    ViewData["Title"] = "Employees";
+}
+
+<h1>Employees</h1>
+
+<body>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+                <a asp-controller="Employee" asp-action="CreateEmployee">Create New Employee</a>
+            </div>
+        </div>
+        <form method="get">
+            <div class="row">
+                <div class="col-md-2">Id</div>
+                <div class="col-md-3">Name</div>
+                <div class="col-md-3">Email Address</div>
+                <div class="col-md-4">&nbsp;</div>
+
+            </div>
+            @foreach (var item in Model)
+            {
+                <div class="row">
+                    <div class="col-md-2">@item.Id</div>
+                    <div class="col-md-3">@item.FirstName&nbsp;@item.LastName</div>
+                    <div class="col-md-3">@item.EmailAddress         </div>
+                    <div class="col-md-4">
+                        <a asp-action="EditEmployee" asp-route-id="@item.Id">Edit</a>
+                        |&nbsp;@*<a asp-action="DeleteEmployee" asp-route-id="@item.Id">Delete</a>*@
+                        <a id="lnkDeleteEmployee" href="#" onclick="DeleteEmployee(@item.Id)">Delete</a>
+                    </div>
+                </div>
+            }
+        </form>
+    </div>
+</body>
+@section Scripts{
+<script type="text/javascript">
+    function DeleteEmployee(employeeeId) {
+        $.ajax({
+            type: "POST",
+            url: '/Employee/DeleteEmployee',
+            data: { Id: employeeeId },
+            success: function (data) {
+                if (!data.isSucess) {
+                    alert("An Error occured");
+                }
+                else
+                    alert("Successfully Deleted ");
+                window.location.href = '/Employee/Employees';
+            }
+        });
+
+    }
+</script>
+}

@@ -1,0 +1,60 @@
+﻿@model Employee
+@{
+    ViewData["Title"] = "EditEmployee";
+}
+
+<h1>Edit Employee</h1>
+<form >
+    <div class="container">
+        <div class="row">
+            <div class="col"><label asp-for="FirstName"></label></div>
+            <div class="col"><input asp-for="FirstName" value="@Model.FirstName" /><span asp-validation-for="FirstName"></span></div>
+
+        </div><div class="row">
+            <div class="col">Last Name</div>
+            <div class="col"><input asp-for="LastName" value="@Model.LastName" /><span asp-validation-for="LastName"></span></div>
+        </div>
+        <div class="row">
+            <div class="col">Email</div>
+            <div class="col"><input asp-for="EmailAddress" value="@Model.EmailAddress" /><span asp-validation-for="EmailAddress"></span></div>
+        </div>
+        <div class="row">
+            <input type="hidden" asp-for="Id" value="@Model.Id" />
+            <div class="col">
+                @*<button asp-action="UpdateEmployee">Update Employee</button>*@
+                        <button id="UpdateEmployee">Update Employee</button>
+                    </div>
+        </div>
+
+    </div>
+</form>
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#UpdateEmployee").on("click", function (e) {
+                e.preventDefault();
+                var empModel = {};
+                empModel.FirstName = $("#FirstName").val();
+                empModel.LastName = $("#LastName").val();
+                empModel.EmailAddress = $("#EmailAddress").val();
+                empModel.Id = $("#Id").val();
+
+                $.ajax({
+                    type: "POST",
+                    url: '/Employee/UpdateEmployee',
+                    data: empModel,
+                    success: function (data) {
+                        if (!data.isSucess) {
+                            alert("An Error occured");
+                        }
+                        else
+                            alert("Successfully Updated ");
+                        window.location.href = '/Employee/Employees';
+                    }
+                });
+            });
+        });
+    </script>
+}

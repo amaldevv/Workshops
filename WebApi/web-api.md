@@ -132,7 +132,7 @@ public async Task<ActionResult<Employee>> DeleteEmployee(int id)
         return NotFound();
     }
 
-    empRepo.DeleteEmployee(id);
+    await empRepo.DeleteEmployee(id);
     
 
     return employee;
@@ -305,12 +305,444 @@ using (var httpClient = new HttpClient())
 ```
 
 # Model Valiadation
-To perform a valiadtion we can use
+To perform a valiadtion against a model, we can use the `Isvalid` to verify all the requirements set by the data annotation attributes are passing or not
 
 ```csharp
 if (!ModelState.IsValid)
 {
     return Page();
+}
+```
+## Implementing Model Validation filters
+If you want to move these kind of validation checking to a central location, it's better to write that logic inside a filter. It's possible to create an Action filter by inherting the `ActionFilter` class. There are two methods available in that class to override
+- OnActionExecuting 
+- OnActionExecuted
+
+The first method will get executed before each action method in the controller is executed and the second will get executed after the ones in your controller completes the execution
+
+### Step 1
+Add a new folder named **Filters** in your Web API project and add new class named **ModelValidationFilter** inside it
+
+### Step 2
+Import the `Microsoft.AspNetCore.Mvc.Filters` namspace
+
+```csharp
+using Microsoft.AspNetCore.Mvc.Filters;
+```
+Inherit `ActionFilterAttribute` class
+
+```csharp
+public class ModelValidationFilter : ActionFilterAttribute
+```
+### Step 4
+
+Now, modify the `OnActionExecuting` method with the following snippet. This will verify whether the incoming model for that action method is a valid one and the control will be passed to our action method only if it passes the validation. If it fails, then it will return with an error back to the response stream
+
+```csharp
+public override void OnActionExecuting(ActionExecutingContext context)
+{
+
+    var param = context.ActionArguments.SingleOrDefault();
+
+    if (param.Value == null)
+    {
+        context.Result = new BadRequestObjectResult("Model is null");
+        return;
+    }
+
+    if (!context.ModelState.IsValid)
+    {
+        context.Result = new BadRequestObjectResult(context.ModelState);
+    }
+}
+```
+### Step 5
+
+Decorate the action methods in your web api controller so that the filter will be used for validating the incoming payload
+
+```csharp
+
+[HttpPost]
+[ModelValidationFilter]
+public async Task<ActionResult<Employee>> CreateEmployee(Employee employee)
+
+
+[HttpPut("{id}")]
+[ModelValidationFilter]
+public async Task<IActionResult> UpdateEmployee(int id, Employee employee)
+
+```
+# Handling Exceptions
+
+Whenever there is an exception happening in the Web API project you will get a developer exception page with details about the exception. By default this page will be available only in the developer environment and is normally returned as an html. But in the case of WEB API , the content is returned in plain text format. To get an HTML formatted response, set media type as `text/html` for the 'Accept` request header.
+
+### Step 1
+
+To show a meaningful error page in upper ennvironments, use the Exception Handling Middleware available in the framework. To invoke it, modify the `Configure` method in the `Startup` class with the below snippet. When an exception occurs in non-prod environments, the control will be rediected to the page mentioned while invoking the middleware. Here it will look for an action method `Index` in a  controller named `Error`. Make sure that you call this before any middlewares, so that the exceptions happened inside that can also be handled
+
+```csharp
+if (env.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/error");
+}
+
+```
+### Step 2
+
+We don't have a controller named like that in our web api project right, So let's create one  and add attribute routing for the error method
+
+```csharp
+[ApiController]
+public class ErrorController : ControllerBase
+{
+    [Route("/api/error")]
+    public IActionResult Error() => Problem();
+}
+```
+### Step 3 Custom Exception Middleware
+
+Middlewares can be used to catch unhandled exceptions in your code. You can write your own logic inside that and add it to the pipeline and configure it to handle all the exceptions for you. Create a new folder named `Middlewares` and a class named `GlobalExceptionMiddleware`
+
+
+```csharp
+public class GlobalExceptionMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public GlobalExceptionMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task InvokeAsync(HttpContext httpContext)
+        {
+            try
+            {
+                await _next(httpContext);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                //Logging logic goes here
+                await HandleExceptionAsync(httpContext, ex);
+            }
+            catch (NotSupportedException ex)
+            {
+                //Logging logic goes here
+                await HandleExceptionAsync(httpContext, ex);
+            }
+            catch (Exception ex)
+            {
+                //Logging logic goes here
+                await HandleExceptionAsync(httpContext, ex);
+            }
+        }
+
+        private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+        {
+            context.Response.ContentType = "application/json";
+            var message = String.Empty;
+            var exceptionType = exception.GetType();
+            if (exceptionType == typeof(UnauthorizedAccessException))
+            {
+                message = "Access to the Web API is not authorized.";
+                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            }
+            else if (exceptionType == typeof(NotSupportedException))
+            {
+                message = "Not Supported.";
+                context.Response.StatusCode = (int)HttpStatusCode.NotAcceptable;
+            }
+            else if (exceptionType == typeof(Exception))
+            {
+                message = "Internal Server Error.";
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            }
+            else
+            {
+                message = "Not found.";
+                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+            }
+            
+
+            await context.Response.WriteAsync($"{context.Response.StatusCode} - {message}");
+        }
+    }
+
+```
+
+## Implement File Logging with Serilog
+
+### Step 1
+Add the following packages
+```bash
+Install-Package Serilog
+Install-Package Serilog.Extensions.Logging
+Install-Package Serilog.Sinks.Console
+Install-Package Serilog.Sinks.File
+```
+Modify ```appsettings.json``` to include log file path
+```json
+  "Logging": {
+    "LogPath": "logs//ex.log",
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+```
+In program.cs modify the ```CreateHostBuilder``` method
+to add config settings
+
+```csharp
+ var configSettings = new ConfigurationBuilder()
+               .AddJsonFile("appsettings.json")
+               .Build();
+```
+Import Serilog namespace and add logger config
+```csharp
+using Serilog;
+```
+
+
+```csharp
+ Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.File(configSettings["Logging:LogPath"])
+                .CreateLogger();
+```               
+and then configure app configuration and logging
+```csharp
+ return Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
+                    config.AddConfiguration(configSettings);
+                })
+                .ConfigureLogging(logging =>
+                {
+                    logging.AddSerilog();
+                })
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+```
+
+Modify the middleware to implement the logger, by injecting the logger instance 
+
+```csharp
+ private readonly ILogger<GlobalExceptionMiddleware> _logger;
+
+public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
+{
+    _next = next;
+    _logger = logger;
+}
+```
+
+Then modify the `InvokeAsync` method to call the `LogError` method
+```csharp
+public async Task InvokeAsync(HttpContext httpContext)
+{
+    try
+    {
+        await _next(httpContext);
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+        _logger.LogError($"Exception occured, {ex.Message}, {typeof(NotSupportedException)}");
+        //Logging logic goes here
+        await HandleExceptionAsync(httpContext, ex);
+    }
+    catch (NotSupportedException ex)
+    {
+        _logger.LogError($"Exception occured, {ex.Message}, {typeof(NotSupportedException)}");
+        //Logging logic goes here
+        await HandleExceptionAsync(httpContext, ex);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Exception occured, {ex.Message}, {typeof(NotSupportedException)}");
+        //Logging logic goes here
+        await HandleExceptionAsync(httpContext, ex);
+    }
+}
+```
+### Unit Testing API
+
+### Step 1 
+Add new xUnit test project to the solution, name the project as EmployeeAPI.Tests
+
+### Step 2
+Refer the API project in your solution by right clicking on the test project, then Add Reference and select the project
+
+### Step 3 
+Add the following package to you project by executing the following commands in Package Manager Console
+
+```bash
+Install-Package Microsoft.AspNetCore.Mvc
+Install-Package Microsoft.AspNetCore.Mvc.Core
+Install-Package Microsoft.AspNetCore.Diagnostics
+Install-Package Microsoft.AspNetCore.TestHost
+Install-Package Microsoft.Extensions.Configuration.Json
+```
+### Step 4
+Add a new class file to bootstrap our WebAPI, let's name that as `TestFixture.cs`
+
+Add the following namespaces first
+```csharp
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.ViewComponents;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+```
+
+```csharp
+public class TestFixture<TStartup> : IDisposable
+{
+    public static string GetProjectPath(string projectRelativePath, Assembly startupAssembly)
+    {
+        var projectName = startupAssembly.GetName().Name;
+
+        var applicationBasePath = AppContext.BaseDirectory;
+
+        var directoryInfo = new DirectoryInfo(applicationBasePath);
+
+        do
+        {
+            directoryInfo = directoryInfo.Parent;
+
+            var projectDirectoryInfo = new DirectoryInfo(Path.Combine(directoryInfo.FullName, projectRelativePath));
+
+            if (projectDirectoryInfo.Exists)
+                if (new FileInfo(Path.Combine(projectDirectoryInfo.FullName, projectName, $"{projectName}.csproj")).Exists)
+                    return Path.Combine(projectDirectoryInfo.FullName, projectName);
+        }
+        while (directoryInfo.Parent != null);
+
+        throw new Exception($"Project root could not be located using the application root {applicationBasePath}.");
+    }
+
+    private TestServer Server;
+
+    public TestFixture()
+        : this(Path.Combine(""))
+    {
+    }
+
+    public HttpClient Client { get; }
+
+    public void Dispose()
+    {
+        Client.Dispose();
+        Server.Dispose();
+    }
+
+    protected virtual void InitializeServices(IServiceCollection services)
+    {
+        var startupAssembly = typeof(TStartup).GetTypeInfo().Assembly;
+
+        var manager = new ApplicationPartManager
+        {
+            ApplicationParts =
+            {
+                new AssemblyPart(startupAssembly)
+            },
+            FeatureProviders =
+            {
+                new ControllerFeatureProvider(),
+                new ViewComponentFeatureProvider()
+            }
+        };
+
+        services.AddSingleton(manager);
+    }
+
+    protected TestFixture(string relativeTargetProjectParentDir)
+    {
+        var startupAssembly = typeof(TStartup).GetTypeInfo().Assembly;
+        var contentRoot = GetProjectPath(relativeTargetProjectParentDir, startupAssembly);
+
+        var configurationBuilder = new ConfigurationBuilder()
+            .SetBasePath(contentRoot)
+            .AddJsonFile("appsettings.json");
+
+        var webHostBuilder = new WebHostBuilder()
+            .UseContentRoot(contentRoot)
+            .ConfigureServices(InitializeServices)
+            .UseConfiguration(configurationBuilder.Build())
+            .UseEnvironment("Development")
+            .UseStartup(typeof(TStartup));
+
+        // Create instance of test server
+        Server = new TestServer(webHostBuilder);
+
+        // Add configuration for client
+        Client = Server.CreateClient();
+        Client.BaseAddress = new Uri("https://localhost:44388");
+        Client.DefaultRequestHeaders.Accept.Clear();
+        Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    }
+}
+```
+### Step 6
+Now we will create a new class for writing our test methods
+
+```csharp
+public class EmployeeControllerTests : IClassFixture<TestFixture<Startup>>
+{
+    private HttpClient Client;
+
+    public EmployeeControllerTests(TestFixture<Startup> fixture)
+    {
+        Client = fixture.Client;
+    }
+
+    [Fact]
+    public async Task EmployeeListGetTestAsync()
+    {
+        // Arrange
+        var request = "/api/Employee";
+
+        // Act
+        var response = await Client.GetAsync(request);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task EmployeeCreateTestAsync()
+    {
+        // Arrange
+        var request = new
+        {
+            Url = "/api/Employee",
+            Body = new
+            {
+                FirstName ="Api",
+                LastName = "test",
+                EmailAddress = "apitest@gmail.com"
+            }
+        };
+
+        // Act
+        var response = await Client.PostAsync(request.Url, GetStringContent(request.Body));
+        var value = await response.Content.ReadAsStringAsync();
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+    }
+
+    public static StringContent GetStringContent(object obj)
+        => new StringContent(JsonSerializer.Serialize(obj), Encoding.Default, "application/json");
 }
 ```
 

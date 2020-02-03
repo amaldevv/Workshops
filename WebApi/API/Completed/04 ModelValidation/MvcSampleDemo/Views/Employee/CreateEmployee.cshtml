@@ -1,0 +1,30 @@
+﻿@model Employee
+@{
+    ViewData["Title"] = "CreateEmployee";
+}
+
+<h1>CreateEmployee</h1>
+<form method="post">
+    <div class="container">
+        <div class="row">
+            <div class="col"><label asp-for="FirstName"></label></div>
+            <div class="col"><input asp-for="FirstName" /><span asp-validation-for="FirstName"></span></div>
+
+        </div><div class="row">
+            <div class="col">Last Name</div>
+            <div class="col"><input asp-for="LastName" /></div>
+        </div>
+        <div class="row">
+            <div class="col">Email</div>
+            <div class="col"><input asp-for="EmailAddress" /></div>
+        </div>
+        <div class="row">
+            <div class="col"><button asp-action="SaveEmployee">Save Employee</button></div>
+        </div>
+
+    </div>
+</form>
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}
