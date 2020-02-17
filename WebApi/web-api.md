@@ -745,6 +745,190 @@ public class EmployeeControllerTests : IClassFixture<TestFixture<Startup>>
         => new StringContent(JsonSerializer.Serialize(obj), Encoding.Default, "application/json");
 }
 ```
+# Authentication 
+
+Authentication is the process of verifying whether the identity of an user is valid or not. ASP.NET Core, it is handled by the `IAuthenticationService` used by the **Authentication Middleware**. The authentication service uses registered handlers to complete actions related to authentication such as 
+- Authenticating an user
+- Control access to restricted resource for an unauthenticated user
+
+The handlers and its configuration options are called schemes. Authentication schemes are specified while registering the authentication services in `Startup.ConfigureServices` method
+
+## Basic Authentication
+
+Its a simple authention scheme built with HTTP protocol
+It allows browsers or other user agents to request resources using credentials consisting of username and a password and it doesn't requires cookies, session identifiers etc
+
+It basically checks the `Authorization` header in the HTTP requests. A valid header must contain the word `Basic` immediately followed by a space and base64-encoded string which can be decoded to a string in the format `username:password`
+
+Sample Format
+```html
+Authorization: Basic YWRtaW46cEBzNXcwcmQ=
+```
+
+Since it can be easily decoded it should be only used along with other security mechanisms like HTTPS/SSL
+
+### Step 1
+
+Add an authentication handler class
+
+```csharp
+public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    {
+        public BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
+            ILoggerFactory logger,
+            UrlEncoder encoder,
+            ISystemClock clock) :  base(options, logger, encoder, clock)
+        {
+
+        }
+        protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
+        {
+            if (!Request.Headers.ContainsKey("Authorization"))
+                return await Task.FromResult( AuthenticateResult.Fail("Missing Authorization Header"));
+
+           
+            try
+            {
+                var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]);
+                var credentialBytes = Convert.FromBase64String(authHeader.Parameter);
+                var credentials = Encoding.UTF8.GetString(credentialBytes).Split(new[] { ':' }, 2);
+                var username = credentials[0];
+                var password = credentials[1];
+                if (String.IsNullOrWhiteSpace(username) || String.IsNullOrWhiteSpace(password))
+                    return await Task.FromResult(AuthenticateResult.Fail("Invalid Username or Password"));
+                 if (!(username.Equals("test") && password.Equals("test")))
+                    return await Task.FromResult(AuthenticateResult.Fail("Invalid Username or Password"));
+                var claims = new[] {
+                    new Claim(ClaimTypes.NameIdentifier, username.ToString()),
+                    new Claim(ClaimTypes.Name, username),
+                };
+                var identity = new ClaimsIdentity(claims, Scheme.Name);
+                var principal = new ClaimsPrincipal(identity);
+                var ticket = new AuthenticationTicket(principal, Scheme.Name);
+                return await Task.FromResult(AuthenticateResult.Success(ticket));
+            }
+            catch
+            {
+                return await Task.FromResult(AuthenticateResult.Fail("Invalid Authorization Header"));
+            }
+           
+        }
+    }
+```
+### Step 2
+
+Configure ```Startup.cs``` method to configure basic authentication
+
+```csharp
+ services.AddAuthentication("BasicAuthentication")
+                .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
+```
+
+Add the following in configure method
+```csharp
+app.UseAuthentication();
+app.UseAuthorization();
+```
+### Step 3 
+To test using postman, go to the Authorization tab and select Basic from the options and give values 
+
+### Step 4 
+
+To consume the API in you applications add the header via code
+
+```csharp
+ httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                    AuthenticationSchemes.Basic.ToString(),
+                    Convert.ToBase64String(Encoding.ASCII.GetBytes($"{"test"}:{"test"}"))
+```
+## Bearer Authentication
+
+### Step 1
+
+Add the following package to your api project
+```bash
+install-package Microsoft.AspNetCore.Authentication.JwtBearer
+```
+### Step 2 
+Create a new entry in the `appsettings.json` to store the secret private key
+
+```json
+"Jwt": {
+    "Key": "12b6fb24-adb8-4ce5-aa49-79b265ebf256"
+  }
+```
+### Step 3
+Modify the `Startup.cs` to setup bearer authentication
+
+
+```csharp
+services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(x =>
+{
+    x.RequireHttpsMetadata = false;
+    x.SaveToken = true;
+    x.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration["Jwt:Key"])),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+    };
+});
+```
+
+### Step 4
+Decorate the controller with the `[Authorize]` attribute
+
+### Creating a JWT(JSON Web Token)
+
+A JWT is composed of three parts
+- **Header**
+  It will have two keys, one specifying the type of the algorithm and then type
+```json
+{
+"alg": "HS256",
+"typ": "JWT"
+}
+
+````
+
+- **Payload**
+Payload can different types of keys such as unique_name, email, exp(expiration timestamp of the JWT), iat(timestamp when JWT was issues), nbf(not valid before timestamp) etc
+```json
+{
+  "unique_name": "amal",
+  "email": "amal@domain.com",
+  "nbf": 1573035014,
+  "exp": 1575627014,
+  "iat": 1573035014
+}
+```
+
+- **Signature**
+is the base64 encoded header and payload using the secret 
+```json
+HMACSHA256(
+  base64UrlEncode(header) + "." +
+  base64UrlEncode(payload),
+  "12b6fb24-adb8-4ce5-aa49-79b265ebf256"
+)
+```
+
+Use http://jwt.io/ for creating your own
+Generated sample 
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3QgU2FtcGxlIiwiaWF0IjoxNTgxODQ0MDAxLCJleHAiOjE1ODI3MDgwMDF9.FPCEfjnSIvLvgQlD68ucXi5f9o5idlZ_MJkFD8V6Wac
+```
+
+To test it using Postman, go to the Authorization tab, select Bearer as the option and set the above value inside token
+
+### Step 5
+SEtting up authentication in call made from the web project
 
 # Enable Cors
 
