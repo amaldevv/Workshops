@@ -111,7 +111,12 @@ public class PermissionRequirement : IAuthorizationRequirement
 ```
 
 ### Step 2 
-Create a handler class for validting this requirement. Go to the Filters folder and create a class named `CustomAuthorizationHandler.cs` and override the `HandleRequirementAsync` method
+Create a handler class for validting this requirement. Go to the Filters folder and create a class named `CustomAuthorizationHandler.cs` by inheriting the AuthorizationHandler class and override the 
+`HandleRequirementAsync` method
+
+```csharp
+public class CustomAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
+```
 
 ```csharp
 protected override  Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
