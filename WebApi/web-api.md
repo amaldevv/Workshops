@@ -930,6 +930,12 @@ To test it using Postman, go to the Authorization tab, select Bearer as the opti
 ### Step 5
 SEtting up authentication in call made from the web project
 
+```csharp
+  string accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3QgU2FtcGxlIiwiaWF0IjoxNTgxODQ0MDAxLCJleHAiOjE1ODI3MDgwMDF9.FPCEfjnSIvLvgQlD68ucXi5f9o5idlZ_MJkFD8V6Wac";
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                    "Bearer", accessToken);
+```
+
 # Enable Cors
 
  Add the following 
