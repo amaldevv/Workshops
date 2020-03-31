@@ -1,0 +1,37 @@
+@model EmployeeManager.Web.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+<h1>Login</h1>
+<form method="post">
+    <div class="container">
+        <div class="row">
+            <div class="col"><label asp-for="Username"></label></div>
+            <div class="col"><input asp-for="Username" /><span asp-validation-for="Username"></span></div>
+
+        </div><div class="row">
+            <div class="col">Last Name</div>
+            <div class="col"><input asp-for="Password" type="password" /></div>
+        </div>
+        @if(Model != null && Model.Errors.Count > 0)
+        {
+            <div class="row">
+                @foreach (var item in Model.Errors)
+                {
+                    <span>@item</span><br/>
+                }
+            </div>
+        }
+        <div class="row">
+            <div class="col"><button asp-controller="Account" asp-action="ValidateLogin">Login</button></div>
+        </div>
+
+    </div>
+</form>
+@section Scripts
+{
+
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+}
