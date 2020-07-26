@@ -5,7 +5,7 @@
 3. Add a new class library project for models called EmployeeManager.Models
 4. Add a new model for Employee, create a class named Employee.cs and add properties
 
-![](images/01-Create new project.PNG)
+![Create new .NET Core Web Application](/images/01-Create new project.PNG)
 
 ```csharp
 public class Employee
