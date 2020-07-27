@@ -2,7 +2,7 @@
 
 1. Create a new empty MVC core project
 2. Select a target framework as `netcoreapp31`
-![01_CreateNew]
+![01_createnew]
 ![02_configproj]
 ![03_createwebapp]
 3. Add a new class library project for models called EmployeeManager.Models
@@ -204,17 +204,28 @@ Let's see how we can publish it to Azure right from Visual Studio.
 
 1. Right click your web project and select Publish
 2. Select Azure from the popup window and click next
+
 ![16_pubselaz]
+
 3. In the next window, select Azure App Service for Windows
+
 ![17_pubselwa]
+
 4. Since we are deploying it as a new app service, select that option from the bottom
+
 ![18_selnewwa]
+
 5. In the select window, give a name for the app service, select subscription, create a new resource group and app service plan and click on create
+
 ![19_pubwa]
+
 6. Once the deployment is completed, click on the finish button.
+
 ![20_depcomp]
+
 7. You will be presented with a summary page, from where you can browse the newly created app service
 8. click on the publish button in the summary page to start deploying the app into azure
+
 ![21_pubsum]
 ![22_wainaz]
 
@@ -501,7 +512,9 @@ services.AddAuthorization(auth =>
 ```
 
 4. Add a new view for showing the access denied page
+
 ![23_1_adddeniedvw]
+
 ```html
 <h1>AccessDenied</h1>
 
@@ -731,7 +744,7 @@ public class ExtendedOpenIdConnectEvents : OpenIdConnectEvents
 14. Let's publish this to our web app in Azure and see how it's working there.
 
 
-[01_CreateNew]: images/01-Create%20new%20project.PNG "Create New empty web project"
+[01_createnew]: images/01-Create%20new%20project.PNG "Create New empty web project"
 [02_configproj]:images/02-Configure%20Project.PNG 
 [03_createwebapp]:images/03-Create%20ASP.NET%20Core%20Web%20App.PNG 
 [04_newlibprj]:images/04-Add%20new%20class%20library%20project.PNG 
