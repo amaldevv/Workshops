@@ -2,10 +2,13 @@
 
 1. Create a new empty MVC core project
 2. Select target framework as `netcoreapp31`
+![Create new .NET Core Web Application][01_CreateNew]
+![02_configproj]
+![03_createwebapp]
 3. Add a new class library project for models called EmployeeManager.Models
+![04_newlibprj]
+![05_configlibprj]
 4. Add a new model for Employee, create a class named Employee.cs and add properties
-
-![Create new .NET Core Web Application](images/01-Create%20new%20project.PNG)
 
 ```csharp
 public class Employee
@@ -37,8 +40,11 @@ public class User
 
 ## 2. Add Controller and Views
 
-1. Create a new folder called Controllers and add a new controller called `EmployeeController`
-2. Rename the action method Index to Employees
+1. Create a new folder called `Controllers` and add a new controller called `EmployeeController`
+![06_newctlr]
+![07_savectlr]
+![08_slnexp]
+2. Rename the action method `Index` to `Employees`
 
 ```csharp
 public IActionResult Employees()
@@ -48,8 +54,9 @@ public IActionResult Employees()
 ```
 
 3. We will now create views for employee management. Create a folder called Views, then add `_ViewImports.cshtml` & `_ViewStart.cshtml` files
-
-4. In the _ViewImport.cshtml file add the below content
+![09_addvi]
+![10_addvs]
+4. In the `_ViewImport.cshtml` file add the below content
 
 ```csharp
 @using EmployeeManager.Web
@@ -57,9 +64,13 @@ public IActionResult Employees()
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 ```
 
-5. Comment out the contents in the _ViewStart.cshtml file for the tme being. We will revisit it at a later point
+5. Comment out the contents in the `_ViewStart.cshtml` file for the time being. We will revisit it at a later point
 
-6. Add a new folder called Employee under the View folder and add a new view called `Employees.cshtml` and replace the existing content with the below content there
+6. Add a new folder called `Employee` under the View folder and add a new view called `Employees.cshtml` 
+![11_nwrzvw]
+![12_nwempvw]
+
+Replace the existing content with the below content there
 
 ```html
 @{
@@ -68,27 +79,30 @@ ViewData["Title"]="Employee List";
 <h2>Employee List</h2>
 ```
 
-If you run this app you will sill see the earlier content which we saw in step 1. For our newly created views to render we will need to do some bootstrapping
+If you run this app you will see the earlier content which we saw in step 1.
+For our newly created views to render we will need to do some bootstrapping
 
 ## 4. Configuring startup
 
 1. Go to Startup.cs file, add the below line in the ConfigureServices method
 ` services.AddControllersWithViews();`
 
-2. Replace the app.UseEndPoints call with the below one in Configure method
+2. Replace the `app.UseEndPoints` call with the below one in `Configure` method
 
 ```csharp
 
 app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllerRoute("default",  "{controller=Employee}/{action=Employees}");
-            });
+{
+    endpoints.MapControllerRoute("default",  "{controller=Employee}/{action=Employees}");
+});
 ```
 
 ## 5. Add layout and views
 
 1. Create a new folder called `wwwroot` under the root folder and place all your `js` and `css` files there. We will be using `jQuery` and `Bootstrap` for styling, so get that from the internet and place it under this folder.
 2. Create a new folder called `Shared` under the View folder and add a `_Layout.cshtml` file
+![13_nwlout]
+![14_svlout]
 3. Replace the content in the layout file with the one given below. This will create a good looking UI with a header, a navigation menu, a content area and a footer
 
 ```html
@@ -175,14 +189,14 @@ app.UseEndpoints(endpoints =>
 
 ```
 
-4. Modify the `Startup.cs` file to call the static files middleware so that all our css and js will be served to the browser. Add the below line in the configure method after the `app.UseRouting` statement
+4. Modify the `Startup.cs` file to call the static files middleware so that all our CSS and js will be served to the browser. Add the below line in the configure method after the `app.UseRouting` statement
 
 ```csharp
 app.UseStaticFiles();
 ```
 
 5. Hit F5 to run the application and see it in full glow
-
+![15_styling]
 
 ## 6. Publishing to Azure
 
@@ -190,12 +204,19 @@ Let's see how we can publish it to Azure right from Visual Studio.
 
 1. Right click your web project and select Publish
 2. Select Azure from the popup window and click next
+![16_pubselaz]
 3. In the next window, select Azure App Service for Windows
+![17_pubselwa]
 4. Since we are deploying it as a new app service, select that option from the bottom
+![18_selnewwa]
 5. In the select window, give a name for the app service, select subscription, create a new resource group and app service plan and click on create
+![19_pubwa]
 6. Once the deployment is completed, click on the finish button.
+![20_depcomp]
 7. You will be presented with a summary page, from where you can browse the newly created app service
-8. click on the publish button in the summary page to start deploying the app in to azure
+8. click on the publish button in the summary page to start deploying the app into azure
+![21_pubsum]
+![22_wainaz]
 
 ## 7. Add local authentication
 
@@ -228,6 +249,7 @@ public class LoginViewModel : BaseViewModel
 ```
 
 2. Let's start by creating a view for the login page. Create a new folder called Account under the views folder and create a view called `Login.cshtml`
+![23_addlgvw]
 
 3. Add the below code to create the UI
 
@@ -274,6 +296,7 @@ public class LoginViewModel : BaseViewModel
 ````
 
 3. Add a new controller called `AccountController.cs` inside the `Controllers` folder and add the below code
+![24_addactctlr]
 
 ```csharp
 public IActionResult Login()
@@ -371,6 +394,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 6. Add a welcome link in the header. Create a partial view named _LoginPartial.cshtml and add it under the Shared folder under Views
 Add the below code to create the links
+![25_addlgpvw]
 
 ```html
 
@@ -412,6 +436,7 @@ Add the below code to create the links
 1. We will create a new policy for doing the authorization part in our application. Create a new folder called `Authorization` and add a new file called 
 `RoleAuthorizationRequirement` to define our policy requirement
 
+![26_addpolreq]
 ```csharp
 public class RoleAuthorizationRequirement : AuthorizationHandler<RoleAuthorizationRequirement>, IAuthorizationRequirement
     {
@@ -476,7 +501,7 @@ services.AddAuthorization(auth =>
 ```
 
 4. Add a new view for showing the access denied page
-
+![23_1_adddeniedvw]
 ```html
 <h1>AccessDenied</h1>
 
@@ -706,4 +731,51 @@ public class ExtendedOpenIdConnectEvents : OpenIdConnectEvents
 14. Let's publish this to our web app in Azure and see how it's working there.
 
 
-[01-CreateNew]: (images/01-Create new project.PNG "")
+[01_CreateNew]: images/01-Create%20new%20project.PNG "Create New empty web project"
+[02_configproj]:images/02-Configure%20Project.PNG 
+[03_createwebapp]:images/03-Create%20ASP.NET%20Core%20Web%20App.PNG 
+[04_newlibprj]:images/04-Add%20new%20class%20library%20project.PNG 
+[05_configlibprj]:images/05-Configure%20Class%20libarary%20project.PNG 
+[06_newctlr]:images/06-Add%20empty%20controller.PNG 
+[07_savectlr]:images/07-Save%20Controller.PNG 
+[08_slnexp]:images/08-Solution%20Explorer%20after%20adding%20controller.PNG 
+[09_addvi]:images/09-Add%20View%20Import.PNG 
+[10_addvs]:images/10-Add%20View%20Start.PNG 
+[11_nwrzvw]:images/11-Add%20a%20empty%20razor%20view.PNG 
+[12_nwempvw]:images/12-Create%20Employees%20View.PNG 
+[13_nwlout]:images/13-Create%20Layout%20file.PNG 
+[14_svlout]:images/14-Save%20layout%20file.PNG 
+[15_styling]:images/15-Page%20in%20browser%20with%20styling.PNG 
+[16_pubselaz]:images/16-Publish-Select%20Azure.PNG 
+[17_pubselwa]:images/17-Publish-Select%20App%20Service.PNG 
+[18_selnewwa]:images/18-Publish-Select%20Create%20new%20app%20service.PNG 
+[19_pubwa]:images/19-Publish-New%20App%20Service.PNG 
+[20_depcomp]:images/20-Publish-Deployment%20Completed.PNG 
+[21_pubsum]:images/21-Publish-Summary%20Page.PNG 
+[22_wainaz]:images/22-Web%20App%20in%20azure.PNG 
+[23_addlgvw]:images/23-Add%20login%20view.PNG 
+[23_1_adddeniedvw]:images/23.1-%20Add%20Access%20Denied%20View.PNG 
+[24_addactctlr]:images/24-Add%20account%20contoller.PNG 
+[25_addlgpvw]:images/25-Add%20Login%20partial%20vew.PNG 
+[26_addpolreq]:images/26-Add%20a%20policy%20requirement.PNG 
+[26_1_addroleattr]:images/26.1-Add%20Role%20Authorize%20Attribute.PNG 
+[27_addauthpol]:images/27-Add%20Custom%20Authorization%20policy%20provider.PNG 
+[28_addoidclass]:images/28-Add%20Custom%20OpenID%20Events%20class.PNG 
+[29_eninsights]:images/29-Enable%20App%20Insights.PNG 
+[30_createinsights]:images/30-Create%20App%20Insights%20for%20the%20web%20app.PNG 
+[31_addinsightstel]:images/31-Add%20appinsights%20telemetry%20in%20your%20project.PNG 
+[32_insightseldep]:images/32-App%20Insights%20-select%20dependency%20type.PNG 
+[33_insightsselser]:images/33-App%20Insights%20-%20select%20service.PNG 
+[34_insightsconfig]:images/34-App%20Insights%20-%20configure.PNG 
+[35_insightspubapp]:images/35-App%20Insights%20-%20publish%20web%20app.PNG 
+[35_1_insightssum]:images/35.1-App%20Insights%20-%20summary.PNG 
+[36_pubinsightsconfig]:images/36-Publish%20-%20AppInsights%20-%20configuration.PNG 
+[37_pubinsightsconfigdep]:images/37-Publish%20-%20AppInsights%20-%20configure%20dependency.PNG 
+[38_pubinsightskv]:images/38-Publish%20-%20AppInsights%20-%20select%20keyvault%20-secret.PNG 
+[39_kvconfigdep]:images/39-Publish%20-%20Keyvault-%20configure%20dependency.PNG 
+[_]:images/]
+[_]:images/]
+[_]:images/]
+[_]:images/]
+[_]:images/]
+[_]:images/]
