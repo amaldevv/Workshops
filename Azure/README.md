@@ -2,12 +2,16 @@
 
 1. Create a new empty MVC core project
 2. Select a target framework as `netcoreapp31`
-![01_createnew]
-![02_configproj]
-![03_createwebapp]
+
+    ![01_createnew]
+    ![02_configproj]
+    ![03_createwebapp]
+
 3. Add a new class library project for models called EmployeeManager.Models
-![04_newlibprj]
-![05_configlibprj]
+
+    ![04_newlibprj]
+    ![05_configlibprj]
+
 4. Add a new model for Employee, create a class named Employee.cs and add properties
 
 ```csharp
@@ -41,9 +45,11 @@ public class User
 ## 2. Add Controller and Views
 
 1. Create a new folder called `Controllers` and add a new controller called `EmployeeController`
-![06_newctlr]
-![07_savectlr]
-![08_slnexp]
+
+    ![06_newctlr]
+    ![07_savectlr]
+    ![08_slnexp]
+
 2. Rename the action method `Index` to `Employees`
 
 ```csharp
@@ -54,8 +60,10 @@ public IActionResult Employees()
 ```
 
 3. We will now create views for employee management. Create a folder called Views, then add `_ViewImports.cshtml` & `_ViewStart.cshtml` files
-![09_addvi]
-![10_addvs]
+
+    ![09_addvi]
+    ![10_addvs]
+
 4. In the `_ViewImport.cshtml` file add the below content
 
 ```csharp
@@ -67,8 +75,9 @@ public IActionResult Employees()
 5. Comment out the contents in the `_ViewStart.cshtml` file for the time being. We will revisit it at a later point
 
 6. Add a new folder called `Employee` under the View folder and add a new view called `Employees.cshtml` 
-![11_nwrzvw]
-![12_nwempvw]
+
+    ![11_nwrzvw]
+    ![12_nwempvw]
 
 Replace the existing content with the below content there
 
@@ -101,8 +110,10 @@ app.UseEndpoints(endpoints =>
 
 1. Create a new folder called `wwwroot` under the root folder and place all your `js` and `css` files there. We will be using `jQuery` and `Bootstrap` for styling, so get that from the internet and place it under this folder.
 2. Create a new folder called `Shared` under the View folder and add a `_Layout.cshtml` file
-![13_nwlout]
-![14_svlout]
+
+    ![13_nwlout]
+    ![14_svlout]
+
 3. Replace the content in the layout file with the one given below. This will create a good looking UI with a header, a navigation menu, a content area and a footer
 
 ```html
@@ -196,7 +207,8 @@ app.UseStaticFiles();
 ```
 
 5. Hit F5 to run the application and see it in full glow
-![15_styling]
+    
+    ![15_styling]
 
 ## 6. Publishing to Azure
 
@@ -205,29 +217,29 @@ Let's see how we can publish it to Azure right from Visual Studio.
 1. Right click your web project and select Publish
 2. Select Azure from the popup window and click next
 
-![16_pubselaz]
+   ![16_pubselaz]
 
 3. In the next window, select Azure App Service for Windows
 
-![17_pubselwa]
+    ![17_pubselwa]
 
 4. Since we are deploying it as a new app service, select that option from the bottom
 
-![18_selnewwa]
+    ![18_selnewwa]
 
 5. In the select window, give a name for the app service, select subscription, create a new resource group and app service plan and click on create
 
-![19_pubwa]
+    ![19_pubwa]
 
 6. Once the deployment is completed, click on the finish button.
 
-![20_depcomp]
+    ![20_depcomp]
 
 7. You will be presented with a summary page, from where you can browse the newly created app service
-8. click on the publish button in the summary page to start deploying the app into azure
+8. click on the publish button in the summary page to start deploying the app into Azure
 
-![21_pubsum]
-![22_wainaz]
+    ![21_pubsum]
+    ![22_wainaz]
 
 ## 7. Add local authentication
 
@@ -260,7 +272,8 @@ public class LoginViewModel : BaseViewModel
 ```
 
 2. Let's start by creating a view for the login page. Create a new folder called Account under the views folder and create a view called `Login.cshtml`
-![23_addlgvw]
+
+    ![23_addlgvw]
 
 3. Add the below code to create the UI
 
@@ -307,7 +320,8 @@ public class LoginViewModel : BaseViewModel
 ````
 
 3. Add a new controller called `AccountController.cs` inside the `Controllers` folder and add the below code
-![24_addactctlr]
+
+    ![24_addactctlr]
 
 ```csharp
 public IActionResult Login()
@@ -405,7 +419,8 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 6. Add a welcome link in the header. Create a partial view named _LoginPartial.cshtml and add it under the Shared folder under Views
 Add the below code to create the links
-![25_addlgpvw]
+
+    ![25_addlgpvw]
 
 ```html
 
@@ -447,7 +462,8 @@ Add the below code to create the links
 1. We will create a new policy for doing the authorization part in our application. Create a new folder called `Authorization` and add a new file called 
 `RoleAuthorizationRequirement` to define our policy requirement
 
-![26_addpolreq]
+    ![26_addpolreq]
+
 ```csharp
 public class RoleAuthorizationRequirement : AuthorizationHandler<RoleAuthorizationRequirement>, IAuthorizationRequirement
     {
@@ -513,7 +529,7 @@ services.AddAuthorization(auth =>
 
 4. Add a new view for showing the access denied page
 
-![23_1_adddeniedvw]
+    ![23_1_adddeniedvw]
 
 ```html
 <h1>AccessDenied</h1>
