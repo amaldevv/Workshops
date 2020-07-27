@@ -1,8 +1,8 @@
 ## 1. Create a New Project
 
 1. Create a new empty MVC core project
-2. Select target framework as `netcoreapp31`
-![Create new .NET Core Web Application][01_CreateNew]
+2. Select a target framework as `netcoreapp31`
+![01_CreateNew]
 ![02_configproj]
 ![03_createwebapp]
 3. Add a new class library project for models called EmployeeManager.Models
